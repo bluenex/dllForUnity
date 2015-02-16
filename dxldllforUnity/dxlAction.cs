@@ -107,6 +107,17 @@ namespace dxldllforUnity
 
     public class dxlAction
     {
+        // Control table address
+        public const int P_GOAL_POSITION_L = 30;
+        public const int P_GOAL_POSITION_H = 31;
+        public const int P_PRESENT_POSITION_L = 36;
+        public const int P_PRESENT_POSITION_H = 37;
+        public const int P_MOVING = 46;
+
+
+       
+
+
         public int defaultPort;
         public int defaultBaudrate;
         public int defaultSpeed;
@@ -133,6 +144,27 @@ namespace dxldllforUnity
             this.defaultBaudrate = baudrate;
             this.defaultSpeed = speed;
         }
+
+        // read present position by using control table address
+        public int readPosWord(int motorID)
+        {
+            if (exportfunc.dxl_initialize(defaultPort, defaultBaudrate) == 1)
+            {
+                int presentPos = exportfunc.dxl_read_word(motorID, P_PRESENT_POSITION_L);
+                return presentPos;
+            }
+            else
+            {
+                Console.WriteLine("Cannot connect to USB2Dynamixel..");
+            }
+            // close device
+            exportfunc.dxl_terminate();
+            return 0;
+        }
+
+
+
+
         
         public int[] scanID() // use maximum as broadcastID
         {
