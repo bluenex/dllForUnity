@@ -121,6 +121,7 @@ namespace dxldllforUnity
         public int defaultPort;
         public int defaultBaudrate;
         public int defaultSpeed;
+        public int setID;
         public const int broadcastID = 254;
         public const int defaultMotorID = broadcastID;
         public int[] zeroArray = new int[0]; // use for returning value
@@ -138,33 +139,170 @@ namespace dxldllforUnity
             this.defaultBaudrate = baudrate;
             this.defaultSpeed = 300;
         }
-        public dxlAction(int port, int baudrate, int speed) // overloads for 3 arguments
+        public dxlAction(int port, int baudrate, int motorID) // overloads for 2 arguments
         {
             this.defaultPort = port;
             this.defaultBaudrate = baudrate;
+            this.setID = motorID;
+            this.defaultSpeed = 256;
+        }
+        public dxlAction(int port, int baudrate, int motorID, int speed) // overloads for 3 arguments
+        {
+            this.defaultPort = port;
+            this.defaultBaudrate = baudrate;
+            this.setID = motorID;
             this.defaultSpeed = speed;
         }
 
         // read present position by using control table address
-        public int readPosWord(int motorID)
+        #region connection and error
+        public void PrintCommStatus(int CommStatus)
+        {
+            switch (CommStatus)
+            {
+                case exportfunc.COMM_TXFAIL:
+                    Debug.Log("COMM_TXFAIL: Failed transmit instruction packet!");
+                    break;
+
+                case exportfunc.COMM_TXERROR:
+                    Debug.Log("COMM_TXERROR: Incorrect instruction packet!");
+                    break;
+
+                case exportfunc.COMM_RXFAIL:
+                    Debug.Log("COMM_RXFAIL: Failed get status packet from device!");
+                    break;
+
+                case exportfunc.COMM_RXWAITING:
+                    Debug.Log("COMM_RXWAITING: Now recieving status packet!");
+                    break;
+
+                case exportfunc.COMM_RXTIMEOUT:
+                    Debug.Log("COMM_RXTIMEOUT: There is no status packet!");
+                    break;
+
+                case exportfunc.COMM_RXCORRUPT:
+                    Debug.Log("COMM_RXCORRUPT: Incorrect status packet!");
+                    break;
+
+                default:
+                    Debug.Log("This is unknown error code!");
+                    break;
+            }
+        }
+
+        public void PrintErrorCode()
+        {
+            if (exportfunc.dxl_get_rxpacket_error(exportfunc.ERRBIT_VOLTAGE) == 1)
+                Debug.Log("Input voltage error!");
+
+            if (exportfunc.dxl_get_rxpacket_error(exportfunc.ERRBIT_ANGLE) == 1)
+                Debug.Log("Angle limit error!");
+
+            if (exportfunc.dxl_get_rxpacket_error(exportfunc.ERRBIT_OVERHEAT) == 1)
+                Debug.Log("Overheat error!");
+
+            if (exportfunc.dxl_get_rxpacket_error(exportfunc.ERRBIT_RANGE) == 1)
+                Debug.Log("Out of range error!");
+
+            if (exportfunc.dxl_get_rxpacket_error(exportfunc.ERRBIT_CHECKSUM) == 1)
+                Debug.Log("Checksum error!");
+
+            if (exportfunc.dxl_get_rxpacket_error(exportfunc.ERRBIT_OVERLOAD) == 1)
+                Debug.Log("Overload error!");
+
+            if (exportfunc.dxl_get_rxpacket_error(exportfunc.ERRBIT_INSTRUCTION) == 1)
+                Debug.Log("Instruction code error!");
+        }
+
+        public void dxlInit()
         {
             if (exportfunc.dxl_initialize(defaultPort, defaultBaudrate) == 1)
             {
-                int presentPos = exportfunc.dxl_read_word(motorID, P_PRESENT_POSITION_L);
-                return presentPos;
+                Debug.Log("Succeed to open USB2Dynamixel");
             }
             else
             {
-                Console.WriteLine("Cannot connect to USB2Dynamixel..");
+                Debug.Log("Failed to open USB2Dynamixel");
             }
-            // close device
-            exportfunc.dxl_terminate();
-            return 0;
         }
 
+        public void commStatus()
+        {
+            int CommStatus = exportfunc.dxl_get_result();
+            if (CommStatus == exportfunc.COMM_RXSUCCESS)
+            {
 
+            }
+        }
 
+        public void dxlTerminate()
+        {
+            exportfunc.dxl_terminate();
+        }
+        #endregion
 
+        #region new read
+        public int readPosWord()
+        {
+            int presentPos = exportfunc.dxl_read_word(setID, P_PRESENT_POSITION_L);
+            return presentPos;
+        }
+
+        public int readPosWord(int motorID)
+        {
+            int presentPos = exportfunc.dxl_read_word(motorID, P_PRESENT_POSITION_L);
+            return presentPos;
+        }
+        #endregion
+
+        #region new write
+        public void writePosWord(int target)
+        {
+            exportfunc.dxl_write_word(setID, P_GOAL_POSITION_L, target);
+        }
+
+        public void readPosWord(int motorID, int target)
+        {
+            exportfunc.dxl_write_word(motorID, P_GOAL_POSITION_L, target);
+        }
+        #endregion
+
+        //#region old read
+        //public int readPosWord()
+        //{
+        //    if (exportfunc.dxl_initialize(defaultPort, defaultBaudrate) == 1)
+        //    {
+        //        int presentPos = exportfunc.dxl_read_word(setID, P_PRESENT_POSITION_L);
+        //        return presentPos;
+        //    }
+        //    else
+        //    {
+        //        Console.WriteLine("Cannot connect to USB2Dynamixel..");
+        //    }
+        //    // close device
+        //    exportfunc.dxl_terminate();
+        //    return 0;
+        //}
+        
+        //public int readPosWord(int motorID)
+        //{
+        //    if (exportfunc.dxl_initialize(defaultPort, defaultBaudrate) == 1)
+        //    {
+        //        int presentPos = exportfunc.dxl_read_word(motorID, P_PRESENT_POSITION_L);
+        //        return presentPos;
+        //    }
+        //    else
+        //    {
+        //        Console.WriteLine("Cannot connect to USB2Dynamixel..");
+        //    }
+        //    // close device
+        //    exportfunc.dxl_terminate();
+        //    return 0;
+        //}
+        //#endregion
+
+        // methods copied from old lib
+        // the methods will be real needed are read, write, regwrite, regaction, torque, led, backhome
         
         public int[] scanID() // use maximum as broadcastID
         {
