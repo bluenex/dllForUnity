@@ -131,13 +131,13 @@ namespace dxldllforUnity
             // pre-assign default values
             defaultPort = 3;
             defaultBaudrate = 1; // # Ax12 = 1, Mx64 = 34
-            defaultSpeed = 300;
+            defaultSpeed = 256;
         }
         public dxlAction(int port, int baudrate) // overloads for 2 arguments
         {
             this.defaultPort = port;
             this.defaultBaudrate = baudrate;
-            this.defaultSpeed = 300;
+            this.defaultSpeed = 256;
         }
         public dxlAction(int port, int baudrate, int motorID) // overloads for 2 arguments
         {
@@ -241,6 +241,37 @@ namespace dxldllforUnity
         }
         #endregion
 
+        #region backhome
+        public void backHome() // broadcastID
+        {
+            exportfunc.dxl_set_txpacket_id(setID);
+            exportfunc.dxl_set_txpacket_length(7);
+            exportfunc.dxl_set_txpacket_instruction(3);
+            exportfunc.dxl_set_txpacket_parameter(0, 30);
+            exportfunc.dxl_set_txpacket_parameter(1, 512 % 256);
+            exportfunc.dxl_set_txpacket_parameter(2, 512 / 256);
+            exportfunc.dxl_set_txpacket_parameter(3, defaultSpeed % 256); // it was 512 % 256 
+            exportfunc.dxl_set_txpacket_parameter(4, defaultSpeed / 256); // changed to be 360 to reduce speed
+            exportfunc.dxl_tx_packet();
+            //ledControl(0);
+        }
+
+        public void backHome(int motorID) // specificID
+        {
+            //ledControl(1);
+            exportfunc.dxl_set_txpacket_id(motorID);
+            exportfunc.dxl_set_txpacket_length(7);
+            exportfunc.dxl_set_txpacket_instruction(3);
+            exportfunc.dxl_set_txpacket_parameter(0, 30);
+            exportfunc.dxl_set_txpacket_parameter(1, 512 % 256);
+            exportfunc.dxl_set_txpacket_parameter(2, 512 / 256);
+            exportfunc.dxl_set_txpacket_parameter(3, defaultSpeed % 256); // it was 512 % 256 
+            exportfunc.dxl_set_txpacket_parameter(4, defaultSpeed / 256); // changed to be 360 to reduce speed
+            exportfunc.dxl_tx_packet();
+            //ledControl(0);
+        }
+        #endregion
+
         #region new read
         public int readPosWord()
         {
@@ -267,43 +298,175 @@ namespace dxldllforUnity
         }
         #endregion
 
-        //#region old read
-        //public int readPosWord()
-        //{
-        //    if (exportfunc.dxl_initialize(defaultPort, defaultBaudrate) == 1)
-        //    {
-        //        int presentPos = exportfunc.dxl_read_word(setID, P_PRESENT_POSITION_L);
-        //        return presentPos;
-        //    }
-        //    else
-        //    {
-        //        Console.WriteLine("Cannot connect to USB2Dynamixel..");
-        //    }
-        //    // close device
-        //    exportfunc.dxl_terminate();
-        //    return 0;
-        //}
-        
-        //public int readPosWord(int motorID)
-        //{
-        //    if (exportfunc.dxl_initialize(defaultPort, defaultBaudrate) == 1)
-        //    {
-        //        int presentPos = exportfunc.dxl_read_word(motorID, P_PRESENT_POSITION_L);
-        //        return presentPos;
-        //    }
-        //    else
-        //    {
-        //        Console.WriteLine("Cannot connect to USB2Dynamixel..");
-        //    }
-        //    // close device
-        //    exportfunc.dxl_terminate();
-        //    return 0;
-        //}
-        //#endregion
+        #region regwrite regaction
+        public void regWrite(int position, int speed) // broadcastID
+        {
+            exportfunc.dxl_set_txpacket_id(setID);
+            exportfunc.dxl_set_txpacket_length(7);
+            exportfunc.dxl_set_txpacket_instruction(4);
+            exportfunc.dxl_set_txpacket_parameter(0, 30);
+            exportfunc.dxl_set_txpacket_parameter(1, position % 256);
+            exportfunc.dxl_set_txpacket_parameter(2, position / 256);
+            exportfunc.dxl_set_txpacket_parameter(3, speed % 256);
+            exportfunc.dxl_set_txpacket_parameter(4, speed / 256);
+            exportfunc.dxl_tx_packet();
+            Console.WriteLine("Successfully write REG packet!");
+        }
 
-        // methods copied from old lib
-        // the methods will be real needed are read, write, regwrite, regaction, torque, led, backhome
-        
+        public void regWrite(int motorID, int position, int speed) // specificID
+        {
+            exportfunc.dxl_set_txpacket_id(motorID);
+            exportfunc.dxl_set_txpacket_length(7);
+            exportfunc.dxl_set_txpacket_instruction(4);
+            exportfunc.dxl_set_txpacket_parameter(0, 30);
+            exportfunc.dxl_set_txpacket_parameter(1, position % 256);
+            exportfunc.dxl_set_txpacket_parameter(2, position / 256);
+            exportfunc.dxl_set_txpacket_parameter(3, speed % 256);
+            exportfunc.dxl_set_txpacket_parameter(4, speed / 256);
+            exportfunc.dxl_tx_packet();
+            Console.WriteLine("Successfully write REG packet!");
+        }
+
+        public void regAction() // broadcastID
+        {
+            exportfunc.dxl_set_txpacket_id(setID);
+            exportfunc.dxl_set_txpacket_length(2);
+            exportfunc.dxl_set_txpacket_instruction(5);
+            exportfunc.dxl_tx_packet();
+            Console.WriteLine("REG packet is started!");
+        }
+
+        public void regAction(int motorID) // specificID
+        {
+            exportfunc.dxl_set_txpacket_id(motorID);
+            exportfunc.dxl_set_txpacket_length(2);
+            exportfunc.dxl_set_txpacket_instruction(5);
+            exportfunc.dxl_tx_packet();
+            Console.WriteLine("REG packet is started!");
+        }
+        #endregion
+
+        #region ledcontrol
+        public void ledControl(int status) // broadcastID, status: 0 = off, 1 = on
+        {
+            switch (status)
+            {
+                case 0: // turn LED off
+                    exportfunc.dxl_set_txpacket_id(setID);
+                    exportfunc.dxl_set_txpacket_length(4);
+                    exportfunc.dxl_set_txpacket_instruction(3);
+                    exportfunc.dxl_set_txpacket_parameter(0, 25);
+                    exportfunc.dxl_set_txpacket_parameter(1, 0);
+                    exportfunc.dxl_tx_packet();
+                    Console.WriteLine("LED turned off");
+                    break;
+                case 1: // turn LED on
+                    exportfunc.dxl_set_txpacket_id(setID);
+                    exportfunc.dxl_set_txpacket_length(4);
+                    exportfunc.dxl_set_txpacket_instruction(3);
+                    exportfunc.dxl_set_txpacket_parameter(0, 25);
+                    exportfunc.dxl_set_txpacket_parameter(1, 1);
+                    exportfunc.dxl_tx_packet();
+                    Console.WriteLine("LED turned on");
+                    break;
+                default: Console.WriteLine("Invalid input!");
+                    Console.WriteLine("Your input is {0}: please use 0 = OFF and 1 = ON", status);
+                    break;
+            }
+        }
+
+        public void ledControl(int motorID, int status) // specificID, status: 0 = off, 1 = on
+        {
+            switch (status)
+            {
+                case 0: // turn LED off
+                    exportfunc.dxl_set_txpacket_id(motorID);
+                    exportfunc.dxl_set_txpacket_length(4);
+                    exportfunc.dxl_set_txpacket_instruction(3);
+                    exportfunc.dxl_set_txpacket_parameter(0, 25);
+                    exportfunc.dxl_set_txpacket_parameter(1, 0);
+                    exportfunc.dxl_tx_packet();
+                    Console.WriteLine("LED turned off");
+                    break;
+                case 1: // turn LED on
+                    exportfunc.dxl_set_txpacket_id(motorID);
+                    exportfunc.dxl_set_txpacket_length(4);
+                    exportfunc.dxl_set_txpacket_instruction(3);
+                    exportfunc.dxl_set_txpacket_parameter(0, 25);
+                    exportfunc.dxl_set_txpacket_parameter(1, 1);
+                    exportfunc.dxl_tx_packet();
+                    Console.WriteLine("LED turned on");
+                    break;
+                default: Console.WriteLine("Invalid input!");
+                    Console.WriteLine("Your input is {0}: please use 0 = OFF and 1 = ON", status);
+                    break;
+            }
+        }
+        #endregion
+
+        #region torquecontrol
+        public void torqueControl(int status) // broadcastID, status: 0 = disable, 1 = enable
+        {
+            switch (status)
+            {
+                case 0: // turn torque off
+                    exportfunc.dxl_set_txpacket_id(setID);
+                    exportfunc.dxl_set_txpacket_length(4);
+                    exportfunc.dxl_set_txpacket_instruction(3);
+                    exportfunc.dxl_set_txpacket_parameter(0, 24);
+                    exportfunc.dxl_set_txpacket_parameter(1, status);
+                    exportfunc.dxl_tx_packet();
+                    Console.WriteLine("Torque disabled");
+                    ledControl(0);
+                    break;
+                case 1: // turn torque on
+                    exportfunc.dxl_set_txpacket_id(setID);
+                    exportfunc.dxl_set_txpacket_length(4);
+                    exportfunc.dxl_set_txpacket_instruction(3);
+                    exportfunc.dxl_set_txpacket_parameter(0, 24);
+                    exportfunc.dxl_set_txpacket_parameter(1, status);
+                    exportfunc.dxl_tx_packet();
+                    Console.WriteLine("Torque enabled");
+                    ledControl(1);
+                    break;
+                default: Console.WriteLine("Invalid input!");
+                    Console.WriteLine("Your input is {0}: please use 0 = OFF and 1 = ON", status);
+                    break;
+            }
+        }
+
+        public void torqueControl(int motorID, int status) // specificID, status: 0 = disable, 1 = enable
+        {
+            switch (status)
+            {
+                case 0: // turn torque off
+                    exportfunc.dxl_set_txpacket_id(motorID);
+                    exportfunc.dxl_set_txpacket_length(4);
+                    exportfunc.dxl_set_txpacket_instruction(3);
+                    exportfunc.dxl_set_txpacket_parameter(0, 24);
+                    exportfunc.dxl_set_txpacket_parameter(1, status);
+                    exportfunc.dxl_tx_packet();
+                    Console.WriteLine("Torque disabled");
+                    ledControl(0);
+                    break;
+                case 1: // turn torque on
+                    exportfunc.dxl_set_txpacket_id(motorID);
+                    exportfunc.dxl_set_txpacket_length(4);
+                    exportfunc.dxl_set_txpacket_instruction(3);
+                    exportfunc.dxl_set_txpacket_parameter(0, 24);
+                    exportfunc.dxl_set_txpacket_parameter(1, status);
+                    exportfunc.dxl_tx_packet();
+                    Console.WriteLine("Torque enabled");
+                    ledControl(1);
+                    break;
+                default: Console.WriteLine("Invalid input!");
+                    Console.WriteLine("Your input is {0}: please use 0 = OFF and 1 = ON", status);
+                    break;
+            }
+        }
+        #endregion
+
+        #region scanmotor
         public int[] scanID() // use maximum as broadcastID
         {
             int[] foundID = new int[254]; // declare array for all motor ID
@@ -415,206 +578,210 @@ namespace dxldllforUnity
                 return zeroArray;
             }
         }    
+        #endregion
+
+        // methods copied from old lib
+        // the methods will be real needed are read, write, regwrite, regaction, torque, led, backhome     
         
-        public void ledControl(int status) // broadcastID, status: 0 = off, 1 = on
-        {
-            if (exportfunc.dxl_initialize(defaultPort, defaultBaudrate) == 1)
-            {
-                switch (status)
-                {
-                    case 0: // turn LED off
-                        exportfunc.dxl_set_txpacket_id(broadcastID);
-                        exportfunc.dxl_set_txpacket_length(4);
-                        exportfunc.dxl_set_txpacket_instruction(3);
-                        exportfunc.dxl_set_txpacket_parameter(0, 25);
-                        exportfunc.dxl_set_txpacket_parameter(1, 0);
-                        exportfunc.dxl_tx_packet();
-                        Console.WriteLine("LED turned off");
-                        break;
-                    case 1: // turn LED on
-                        exportfunc.dxl_set_txpacket_id(broadcastID);
-                        exportfunc.dxl_set_txpacket_length(4);
-                        exportfunc.dxl_set_txpacket_instruction(3);
-                        exportfunc.dxl_set_txpacket_parameter(0, 25);
-                        exportfunc.dxl_set_txpacket_parameter(1, 1);
-                        exportfunc.dxl_tx_packet();
-                        Console.WriteLine("LED turned on");
-                        break;
-                    default: Console.WriteLine("Invalid input!");
-                        Console.WriteLine("Your input is {0}: please use 0 = OFF and 1 = ON", status);
-                        break;
-                }
-            }
-            else
-            {
-                Console.WriteLine("Cannot connect to USB2Dynamixel..");
-            }
-            // close device
-            exportfunc.dxl_terminate();
-        }
+        //public void ledControl(int status) // broadcastID, status: 0 = off, 1 = on
+        //{
+        //    if (exportfunc.dxl_initialize(defaultPort, defaultBaudrate) == 1)
+        //    {
+        //        switch (status)
+        //        {
+        //            case 0: // turn LED off
+        //                exportfunc.dxl_set_txpacket_id(broadcastID);
+        //                exportfunc.dxl_set_txpacket_length(4);
+        //                exportfunc.dxl_set_txpacket_instruction(3);
+        //                exportfunc.dxl_set_txpacket_parameter(0, 25);
+        //                exportfunc.dxl_set_txpacket_parameter(1, 0);
+        //                exportfunc.dxl_tx_packet();
+        //                Console.WriteLine("LED turned off");
+        //                break;
+        //            case 1: // turn LED on
+        //                exportfunc.dxl_set_txpacket_id(broadcastID);
+        //                exportfunc.dxl_set_txpacket_length(4);
+        //                exportfunc.dxl_set_txpacket_instruction(3);
+        //                exportfunc.dxl_set_txpacket_parameter(0, 25);
+        //                exportfunc.dxl_set_txpacket_parameter(1, 1);
+        //                exportfunc.dxl_tx_packet();
+        //                Console.WriteLine("LED turned on");
+        //                break;
+        //            default: Console.WriteLine("Invalid input!");
+        //                Console.WriteLine("Your input is {0}: please use 0 = OFF and 1 = ON", status);
+        //                break;
+        //        }
+        //    }
+        //    else
+        //    {
+        //        Console.WriteLine("Cannot connect to USB2Dynamixel..");
+        //    }
+        //    // close device
+        //    exportfunc.dxl_terminate();
+        //}
 
-        public void ledControl(int motorID, int status) // specificID, status: 0 = off, 1 = on
-        {
-            if (exportfunc.dxl_initialize(defaultPort, defaultBaudrate) == 1)
-            {
-                switch (status)
-                {
-                    case 0: // turn LED off
-                        exportfunc.dxl_set_txpacket_id(motorID);
-                        exportfunc.dxl_set_txpacket_length(4);
-                        exportfunc.dxl_set_txpacket_instruction(3);
-                        exportfunc.dxl_set_txpacket_parameter(0, 25);
-                        exportfunc.dxl_set_txpacket_parameter(1, 0);
-                        exportfunc.dxl_tx_packet();
-                        Console.WriteLine("LED turned off");
-                        break;
-                    case 1: // turn LED on
-                        exportfunc.dxl_set_txpacket_id(motorID);
-                        exportfunc.dxl_set_txpacket_length(4);
-                        exportfunc.dxl_set_txpacket_instruction(3);
-                        exportfunc.dxl_set_txpacket_parameter(0, 25);
-                        exportfunc.dxl_set_txpacket_parameter(1, 1);
-                        exportfunc.dxl_tx_packet();
-                        Console.WriteLine("LED turned on");
-                        break;
-                    default: Console.WriteLine("Invalid input!");
-                        Console.WriteLine("Your input is {0}: please use 0 = OFF and 1 = ON", status);
-                        break;
-                }
-            }
-            else
-            {
-                Console.WriteLine("Cannot connect to USB2Dynamixel..");
-            }
-            // close device
-            exportfunc.dxl_terminate();
-        }
+        //public void ledControl(int motorID, int status) // specificID, status: 0 = off, 1 = on
+        //{
+        //    if (exportfunc.dxl_initialize(defaultPort, defaultBaudrate) == 1)
+        //    {
+        //        switch (status)
+        //        {
+        //            case 0: // turn LED off
+        //                exportfunc.dxl_set_txpacket_id(motorID);
+        //                exportfunc.dxl_set_txpacket_length(4);
+        //                exportfunc.dxl_set_txpacket_instruction(3);
+        //                exportfunc.dxl_set_txpacket_parameter(0, 25);
+        //                exportfunc.dxl_set_txpacket_parameter(1, 0);
+        //                exportfunc.dxl_tx_packet();
+        //                Console.WriteLine("LED turned off");
+        //                break;
+        //            case 1: // turn LED on
+        //                exportfunc.dxl_set_txpacket_id(motorID);
+        //                exportfunc.dxl_set_txpacket_length(4);
+        //                exportfunc.dxl_set_txpacket_instruction(3);
+        //                exportfunc.dxl_set_txpacket_parameter(0, 25);
+        //                exportfunc.dxl_set_txpacket_parameter(1, 1);
+        //                exportfunc.dxl_tx_packet();
+        //                Console.WriteLine("LED turned on");
+        //                break;
+        //            default: Console.WriteLine("Invalid input!");
+        //                Console.WriteLine("Your input is {0}: please use 0 = OFF and 1 = ON", status);
+        //                break;
+        //        }
+        //    }
+        //    else
+        //    {
+        //        Console.WriteLine("Cannot connect to USB2Dynamixel..");
+        //    }
+        //    // close device
+        //    exportfunc.dxl_terminate();
+        //}
 
-        public void torqueControl(int status) // broadcastID, status: 0 = disable, 1 = enable
-        {
-            if (exportfunc.dxl_initialize(defaultPort, defaultBaudrate) == 1)
-            {
-                switch (status)
-                {
-                    case 0: // turn torque off
-                        exportfunc.dxl_set_txpacket_id(broadcastID);
-                        exportfunc.dxl_set_txpacket_length(4);
-                        exportfunc.dxl_set_txpacket_instruction(3);
-                        exportfunc.dxl_set_txpacket_parameter(0, 24);
-                        exportfunc.dxl_set_txpacket_parameter(1, status);
-                        exportfunc.dxl_tx_packet();
-                        Console.WriteLine("Torque disabled");
-                        ledControl(0);
-                        break;
-                    case 1: // turn torque on
-                        exportfunc.dxl_set_txpacket_id(broadcastID);
-                        exportfunc.dxl_set_txpacket_length(4);
-                        exportfunc.dxl_set_txpacket_instruction(3);
-                        exportfunc.dxl_set_txpacket_parameter(0, 24);
-                        exportfunc.dxl_set_txpacket_parameter(1, status);
-                        exportfunc.dxl_tx_packet();
-                        Console.WriteLine("Torque enabled");
-                        ledControl(1);
-                        break;
-                    default: Console.WriteLine("Invalid input!");
-                        Console.WriteLine("Your input is {0}: please use 0 = OFF and 1 = ON", status);
-                        break;
-                }
-            }
-            else
-            {
-                Console.WriteLine("Cannot connect to USB2Dynamixel..");
-            }
-            // close device
-            exportfunc.dxl_terminate();
-        }
+        //public void torqueControl(int status) // broadcastID, status: 0 = disable, 1 = enable
+        //{
+        //    if (exportfunc.dxl_initialize(defaultPort, defaultBaudrate) == 1)
+        //    {
+        //        switch (status)
+        //        {
+        //            case 0: // turn torque off
+        //                exportfunc.dxl_set_txpacket_id(broadcastID);
+        //                exportfunc.dxl_set_txpacket_length(4);
+        //                exportfunc.dxl_set_txpacket_instruction(3);
+        //                exportfunc.dxl_set_txpacket_parameter(0, 24);
+        //                exportfunc.dxl_set_txpacket_parameter(1, status);
+        //                exportfunc.dxl_tx_packet();
+        //                Console.WriteLine("Torque disabled");
+        //                ledControl(0);
+        //                break;
+        //            case 1: // turn torque on
+        //                exportfunc.dxl_set_txpacket_id(broadcastID);
+        //                exportfunc.dxl_set_txpacket_length(4);
+        //                exportfunc.dxl_set_txpacket_instruction(3);
+        //                exportfunc.dxl_set_txpacket_parameter(0, 24);
+        //                exportfunc.dxl_set_txpacket_parameter(1, status);
+        //                exportfunc.dxl_tx_packet();
+        //                Console.WriteLine("Torque enabled");
+        //                ledControl(1);
+        //                break;
+        //            default: Console.WriteLine("Invalid input!");
+        //                Console.WriteLine("Your input is {0}: please use 0 = OFF and 1 = ON", status);
+        //                break;
+        //        }
+        //    }
+        //    else
+        //    {
+        //        Console.WriteLine("Cannot connect to USB2Dynamixel..");
+        //    }
+        //    // close device
+        //    exportfunc.dxl_terminate();
+        //}
 
-        public void torqueControl(int motorID, int status) // specificID, status: 0 = disable, 1 = enable
-        {
-            if (exportfunc.dxl_initialize(defaultPort, defaultBaudrate) == 1)
-            {
-                switch (status)
-                {
-                    case 0: // turn torque off
-                        exportfunc.dxl_set_txpacket_id(motorID);
-                        exportfunc.dxl_set_txpacket_length(4);
-                        exportfunc.dxl_set_txpacket_instruction(3);
-                        exportfunc.dxl_set_txpacket_parameter(0, 24);
-                        exportfunc.dxl_set_txpacket_parameter(1, status);
-                        exportfunc.dxl_tx_packet();
-                        Console.WriteLine("Torque disabled");
-                        ledControl(0);
-                        break;
-                    case 1: // turn torque on
-                        exportfunc.dxl_set_txpacket_id(motorID);
-                        exportfunc.dxl_set_txpacket_length(4);
-                        exportfunc.dxl_set_txpacket_instruction(3);
-                        exportfunc.dxl_set_txpacket_parameter(0, 24);
-                        exportfunc.dxl_set_txpacket_parameter(1, status);
-                        exportfunc.dxl_tx_packet();
-                        Console.WriteLine("Torque enabled");
-                        ledControl(1);
-                        break;
-                    default: Console.WriteLine("Invalid input!");
-                        Console.WriteLine("Your input is {0}: please use 0 = OFF and 1 = ON", status);
-                        break;
-                }
-            }
-            else
-            {
-                Console.WriteLine("Cannot connect to USB2Dynamixel..");
-            }
-            // close device
-            exportfunc.dxl_terminate();
-        }
+        //public void torqueControl(int motorID, int status) // specificID, status: 0 = disable, 1 = enable
+        //{
+        //    if (exportfunc.dxl_initialize(defaultPort, defaultBaudrate) == 1)
+        //    {
+        //        switch (status)
+        //        {
+        //            case 0: // turn torque off
+        //                exportfunc.dxl_set_txpacket_id(motorID);
+        //                exportfunc.dxl_set_txpacket_length(4);
+        //                exportfunc.dxl_set_txpacket_instruction(3);
+        //                exportfunc.dxl_set_txpacket_parameter(0, 24);
+        //                exportfunc.dxl_set_txpacket_parameter(1, status);
+        //                exportfunc.dxl_tx_packet();
+        //                Console.WriteLine("Torque disabled");
+        //                ledControl(0);
+        //                break;
+        //            case 1: // turn torque on
+        //                exportfunc.dxl_set_txpacket_id(motorID);
+        //                exportfunc.dxl_set_txpacket_length(4);
+        //                exportfunc.dxl_set_txpacket_instruction(3);
+        //                exportfunc.dxl_set_txpacket_parameter(0, 24);
+        //                exportfunc.dxl_set_txpacket_parameter(1, status);
+        //                exportfunc.dxl_tx_packet();
+        //                Console.WriteLine("Torque enabled");
+        //                ledControl(1);
+        //                break;
+        //            default: Console.WriteLine("Invalid input!");
+        //                Console.WriteLine("Your input is {0}: please use 0 = OFF and 1 = ON", status);
+        //                break;
+        //        }
+        //    }
+        //    else
+        //    {
+        //        Console.WriteLine("Cannot connect to USB2Dynamixel..");
+        //    }
+        //    // close device
+        //    exportfunc.dxl_terminate();
+        //}
 
-        public void backHome() // broadcastID
-        {
-            if (exportfunc.dxl_initialize(defaultPort, defaultBaudrate) == 1)
-            {
-                //ledControl(1);
-                exportfunc.dxl_set_txpacket_id(broadcastID);
-                exportfunc.dxl_set_txpacket_length(7);
-                exportfunc.dxl_set_txpacket_instruction(3);
-                exportfunc.dxl_set_txpacket_parameter(0, 30);
-                exportfunc.dxl_set_txpacket_parameter(1, 512 % 256);
-                exportfunc.dxl_set_txpacket_parameter(2, 512 / 256);
-                exportfunc.dxl_set_txpacket_parameter(3, defaultSpeed % 256); // it was 512 % 256 
-                exportfunc.dxl_set_txpacket_parameter(4, defaultSpeed / 256); // changed to be 360 to reduce speed
-                exportfunc.dxl_tx_packet();
-                //ledControl(0);
-            }
-            else
-            {
-                Console.WriteLine("Cannot connect to USB2Dynamixel");
-            }
-            // close device
-            exportfunc.dxl_terminate();
-        }
+        //public void backHome() // broadcastID
+        //{
+        //    if (exportfunc.dxl_initialize(defaultPort, defaultBaudrate) == 1)
+        //    {
+        //        //ledControl(1);
+        //        exportfunc.dxl_set_txpacket_id(broadcastID);
+        //        exportfunc.dxl_set_txpacket_length(7);
+        //        exportfunc.dxl_set_txpacket_instruction(3);
+        //        exportfunc.dxl_set_txpacket_parameter(0, 30);
+        //        exportfunc.dxl_set_txpacket_parameter(1, 512 % 256);
+        //        exportfunc.dxl_set_txpacket_parameter(2, 512 / 256);
+        //        exportfunc.dxl_set_txpacket_parameter(3, defaultSpeed % 256); // it was 512 % 256 
+        //        exportfunc.dxl_set_txpacket_parameter(4, defaultSpeed / 256); // changed to be 360 to reduce speed
+        //        exportfunc.dxl_tx_packet();
+        //        //ledControl(0);
+        //    }
+        //    else
+        //    {
+        //        Console.WriteLine("Cannot connect to USB2Dynamixel");
+        //    }
+        //    // close device
+        //    exportfunc.dxl_terminate();
+        //}
 
-        public void backHome(int motorID) // specificID
-        {
-            if (exportfunc.dxl_initialize(defaultPort, defaultBaudrate) == 1)
-            {
-                //ledControl(1);
-                exportfunc.dxl_set_txpacket_id(motorID);
-                exportfunc.dxl_set_txpacket_length(7);
-                exportfunc.dxl_set_txpacket_instruction(3);
-                exportfunc.dxl_set_txpacket_parameter(0, 30);
-                exportfunc.dxl_set_txpacket_parameter(1, 512 % 256);
-                exportfunc.dxl_set_txpacket_parameter(2, 512 / 256);
-                exportfunc.dxl_set_txpacket_parameter(3, defaultSpeed % 256); // it was 512 % 256 
-                exportfunc.dxl_set_txpacket_parameter(4, defaultSpeed / 256); // changed to be 360 to reduce speed
-                exportfunc.dxl_tx_packet();
-                //ledControl(0);
-            }
-            else
-            {
-                Console.WriteLine("Cannot connect to USB2Dynamixel");
-            }
-            // close device
-            exportfunc.dxl_terminate();
-        }
+        //public void backHome(int motorID) // specificID
+        //{
+        //    if (exportfunc.dxl_initialize(defaultPort, defaultBaudrate) == 1)
+        //    {
+        //        //ledControl(1);
+        //        exportfunc.dxl_set_txpacket_id(motorID);
+        //        exportfunc.dxl_set_txpacket_length(7);
+        //        exportfunc.dxl_set_txpacket_instruction(3);
+        //        exportfunc.dxl_set_txpacket_parameter(0, 30);
+        //        exportfunc.dxl_set_txpacket_parameter(1, 512 % 256);
+        //        exportfunc.dxl_set_txpacket_parameter(2, 512 / 256);
+        //        exportfunc.dxl_set_txpacket_parameter(3, defaultSpeed % 256); // it was 512 % 256 
+        //        exportfunc.dxl_set_txpacket_parameter(4, defaultSpeed / 256); // changed to be 360 to reduce speed
+        //        exportfunc.dxl_tx_packet();
+        //        //ledControl(0);
+        //    }
+        //    else
+        //    {
+        //        Console.WriteLine("Cannot connect to USB2Dynamixel");
+        //    }
+        //    // close device
+        //    exportfunc.dxl_terminate();
+        //}
 
         //public void backHome(int speed) // broadcastID
         //{
@@ -640,201 +807,201 @@ namespace dxldllforUnity
         //    exportfunc.dxl_terminate();
         //}
 
-        public void backHome(int motorID, int speed) // specificID
-        {
-            if (exportfunc.dxl_initialize(defaultPort, defaultBaudrate) == 1)
-            {
-                //ledControl(1);
-                exportfunc.dxl_set_txpacket_id(motorID);
-                exportfunc.dxl_set_txpacket_length(7);
-                exportfunc.dxl_set_txpacket_instruction(3);
-                exportfunc.dxl_set_txpacket_parameter(0, 30);
-                exportfunc.dxl_set_txpacket_parameter(1, 512 % 256);
-                exportfunc.dxl_set_txpacket_parameter(2, 512 / 256);
-                exportfunc.dxl_set_txpacket_parameter(3, speed % 256); // it was 512 % 256 
-                exportfunc.dxl_set_txpacket_parameter(4, speed / 256); // changed to be 360 to reduce speed
-                exportfunc.dxl_tx_packet();
-                //ledControl(0);
-            }
-            else
-            {
-                Console.WriteLine("Cannot connect to USB2Dynamixel");
-            }
-            // close device
-            exportfunc.dxl_terminate();
-        }
+        //public void backHome(int motorID, int speed) // specificID
+        //{
+        //    if (exportfunc.dxl_initialize(defaultPort, defaultBaudrate) == 1)
+        //    {
+        //        //ledControl(1);
+        //        exportfunc.dxl_set_txpacket_id(motorID);
+        //        exportfunc.dxl_set_txpacket_length(7);
+        //        exportfunc.dxl_set_txpacket_instruction(3);
+        //        exportfunc.dxl_set_txpacket_parameter(0, 30);
+        //        exportfunc.dxl_set_txpacket_parameter(1, 512 % 256);
+        //        exportfunc.dxl_set_txpacket_parameter(2, 512 / 256);
+        //        exportfunc.dxl_set_txpacket_parameter(3, speed % 256); // it was 512 % 256 
+        //        exportfunc.dxl_set_txpacket_parameter(4, speed / 256); // changed to be 360 to reduce speed
+        //        exportfunc.dxl_tx_packet();
+        //        //ledControl(0);
+        //    }
+        //    else
+        //    {
+        //        Console.WriteLine("Cannot connect to USB2Dynamixel");
+        //    }
+        //    // close device
+        //    exportfunc.dxl_terminate();
+        //}
 
-        public void drivePosition(int position) // broadcastID
-            {
-                if (exportfunc.dxl_initialize(defaultPort, defaultBaudrate) == 1)
-                {
-                    exportfunc.dxl_set_txpacket_id(defaultMotorID);
-                    exportfunc.dxl_set_txpacket_length(7);
-                    exportfunc.dxl_set_txpacket_instruction(3);
-                    exportfunc.dxl_set_txpacket_parameter(0, 30);
-                    exportfunc.dxl_set_txpacket_parameter(1, position % 256);
-                    exportfunc.dxl_set_txpacket_parameter(2, position / 256);
-                    exportfunc.dxl_set_txpacket_parameter(3, defaultSpeed % 256);
-                    exportfunc.dxl_set_txpacket_parameter(4, defaultSpeed / 256);
-                    exportfunc.dxl_tx_packet();
-                }
-                else
-                {
-                    Console.WriteLine("Cannot connect to USB2Dynamixel");
-                }
-                // close device
-                exportfunc.dxl_terminate();
-            }
+        //public void drivePosition(int position) // broadcastID
+        //    {
+        //        if (exportfunc.dxl_initialize(defaultPort, defaultBaudrate) == 1)
+        //        {
+        //            exportfunc.dxl_set_txpacket_id(defaultMotorID);
+        //            exportfunc.dxl_set_txpacket_length(7);
+        //            exportfunc.dxl_set_txpacket_instruction(3);
+        //            exportfunc.dxl_set_txpacket_parameter(0, 30);
+        //            exportfunc.dxl_set_txpacket_parameter(1, position % 256);
+        //            exportfunc.dxl_set_txpacket_parameter(2, position / 256);
+        //            exportfunc.dxl_set_txpacket_parameter(3, defaultSpeed % 256);
+        //            exportfunc.dxl_set_txpacket_parameter(4, defaultSpeed / 256);
+        //            exportfunc.dxl_tx_packet();
+        //        }
+        //        else
+        //        {
+        //            Console.WriteLine("Cannot connect to USB2Dynamixel");
+        //        }
+        //        // close device
+        //        exportfunc.dxl_terminate();
+        //    }
 
-        public void drivePosition(int motorID, int position) // specificID, defaultSpeed
-        {
-            if (exportfunc.dxl_initialize(defaultPort, defaultBaudrate) == 1)
-            {
-                exportfunc.dxl_set_txpacket_id(motorID);
-                exportfunc.dxl_set_txpacket_length(7);
-                exportfunc.dxl_set_txpacket_instruction(3);
-                exportfunc.dxl_set_txpacket_parameter(0, 30);
-                exportfunc.dxl_set_txpacket_parameter(1, position % 256);
-                exportfunc.dxl_set_txpacket_parameter(2, position / 256);
-                exportfunc.dxl_set_txpacket_parameter(3, defaultSpeed % 256);
-                exportfunc.dxl_set_txpacket_parameter(4, defaultSpeed / 256);
-                exportfunc.dxl_tx_packet();
-            }
-            else
-            {
-                Console.WriteLine("Cannot connect to USB2Dynamixel");
-            }
-            // close device
-            exportfunc.dxl_terminate();
-        }      
+        //public void drivePosition(int motorID, int position) // specificID, defaultSpeed
+        //{
+        //    if (exportfunc.dxl_initialize(defaultPort, defaultBaudrate) == 1)
+        //    {
+        //        exportfunc.dxl_set_txpacket_id(motorID);
+        //        exportfunc.dxl_set_txpacket_length(7);
+        //        exportfunc.dxl_set_txpacket_instruction(3);
+        //        exportfunc.dxl_set_txpacket_parameter(0, 30);
+        //        exportfunc.dxl_set_txpacket_parameter(1, position % 256);
+        //        exportfunc.dxl_set_txpacket_parameter(2, position / 256);
+        //        exportfunc.dxl_set_txpacket_parameter(3, defaultSpeed % 256);
+        //        exportfunc.dxl_set_txpacket_parameter(4, defaultSpeed / 256);
+        //        exportfunc.dxl_tx_packet();
+        //    }
+        //    else
+        //    {
+        //        Console.WriteLine("Cannot connect to USB2Dynamixel");
+        //    }
+        //    // close device
+        //    exportfunc.dxl_terminate();
+        //}      
 
-        public void drivePosition(int motorID, int position, int speed) // specificID
-        {
-            if (exportfunc.dxl_initialize(defaultPort, defaultBaudrate) == 1)
-            {
-                //ledControl(1);
-                exportfunc.dxl_set_txpacket_id(motorID);
-                //Console.WriteLine(motorID);
-                exportfunc.dxl_set_txpacket_length(7);
-                exportfunc.dxl_set_txpacket_instruction(3);
-                exportfunc.dxl_set_txpacket_parameter(0, 30);
-                exportfunc.dxl_set_txpacket_parameter(1, position % 256);
-                exportfunc.dxl_set_txpacket_parameter(2, position / 256);
-                exportfunc.dxl_set_txpacket_parameter(3, speed % 256);
-                exportfunc.dxl_set_txpacket_parameter(4, speed / 256);
-                exportfunc.dxl_tx_packet();
+        //public void drivePosition(int motorID, int position, int speed) // specificID
+        //{
+        //    if (exportfunc.dxl_initialize(defaultPort, defaultBaudrate) == 1)
+        //    {
+        //        //ledControl(1);
+        //        exportfunc.dxl_set_txpacket_id(motorID);
+        //        //Console.WriteLine(motorID);
+        //        exportfunc.dxl_set_txpacket_length(7);
+        //        exportfunc.dxl_set_txpacket_instruction(3);
+        //        exportfunc.dxl_set_txpacket_parameter(0, 30);
+        //        exportfunc.dxl_set_txpacket_parameter(1, position % 256);
+        //        exportfunc.dxl_set_txpacket_parameter(2, position / 256);
+        //        exportfunc.dxl_set_txpacket_parameter(3, speed % 256);
+        //        exportfunc.dxl_set_txpacket_parameter(4, speed / 256);
+        //        exportfunc.dxl_tx_packet();
 
-                //ledControl(0);
-            }
-            else
-            {
-                Console.WriteLine("Cannot connect to USB2Dynamixel");
-            }
-            // close device
-            exportfunc.dxl_terminate();
-        }
+        //        //ledControl(0);
+        //    }
+        //    else
+        //    {
+        //        Console.WriteLine("Cannot connect to USB2Dynamixel");
+        //    }
+        //    // close device
+        //    exportfunc.dxl_terminate();
+        //}
 
-        public int readPosition(int motorID) // specificID
-        {
-            if (exportfunc.dxl_initialize(defaultPort, defaultBaudrate) == 1)
-            {
-                int low = exportfunc.dxl_read_byte(motorID, 36);
-                int high = exportfunc.dxl_read_byte(motorID, 37);
-                //Console.WriteLine("low byte = {0} high byte = {1}", low, high);
-                int presentPos = (high * 256) + low;
-                //Console.WriteLine("Present position is {0} ",presentPos);
-                return presentPos;
-            }
-            else
-            {
-                Console.WriteLine("Cannot connect to USB2Dynamixel..");
-            }
-            // close device
-            exportfunc.dxl_terminate();
-            return 0;
-        }
+        //public int readPosition(int motorID) // specificID
+        //{
+        //    if (exportfunc.dxl_initialize(defaultPort, defaultBaudrate) == 1)
+        //    {
+        //        int low = exportfunc.dxl_read_byte(motorID, 36);
+        //        int high = exportfunc.dxl_read_byte(motorID, 37);
+        //        //Console.WriteLine("low byte = {0} high byte = {1}", low, high);
+        //        int presentPos = (high * 256) + low;
+        //        //Console.WriteLine("Present position is {0} ",presentPos);
+        //        return presentPos;
+        //    }
+        //    else
+        //    {
+        //        Console.WriteLine("Cannot connect to USB2Dynamixel..");
+        //    }
+        //    // close device
+        //    exportfunc.dxl_terminate();
+        //    return 0;
+        //}
 
-        public void regWrite(int position, int speed) // broadcastID
-        {
-            if (exportfunc.dxl_initialize(defaultPort, defaultBaudrate) == 1)
-            {
-                exportfunc.dxl_set_txpacket_id(broadcastID);
-                exportfunc.dxl_set_txpacket_length(7);
-                exportfunc.dxl_set_txpacket_instruction(4);
-                exportfunc.dxl_set_txpacket_parameter(0, 30);
-                exportfunc.dxl_set_txpacket_parameter(1, position % 256);
-                exportfunc.dxl_set_txpacket_parameter(2, position / 256);
-                exportfunc.dxl_set_txpacket_parameter(3, speed % 256);
-                exportfunc.dxl_set_txpacket_parameter(4, speed / 256);
-                exportfunc.dxl_tx_packet();
-                Console.WriteLine("Successfully write REG packet!");
-            }
-            else
-            {
-                Console.WriteLine("Cannot connect to USB2Dynamixel");
-            }
-            // close device
-            exportfunc.dxl_terminate();
-        }
+        //public void regWrite(int position, int speed) // broadcastID
+        //{
+        //    if (exportfunc.dxl_initialize(defaultPort, defaultBaudrate) == 1)
+        //    {
+        //        exportfunc.dxl_set_txpacket_id(broadcastID);
+        //        exportfunc.dxl_set_txpacket_length(7);
+        //        exportfunc.dxl_set_txpacket_instruction(4);
+        //        exportfunc.dxl_set_txpacket_parameter(0, 30);
+        //        exportfunc.dxl_set_txpacket_parameter(1, position % 256);
+        //        exportfunc.dxl_set_txpacket_parameter(2, position / 256);
+        //        exportfunc.dxl_set_txpacket_parameter(3, speed % 256);
+        //        exportfunc.dxl_set_txpacket_parameter(4, speed / 256);
+        //        exportfunc.dxl_tx_packet();
+        //        Console.WriteLine("Successfully write REG packet!");
+        //    }
+        //    else
+        //    {
+        //        Console.WriteLine("Cannot connect to USB2Dynamixel");
+        //    }
+        //    // close device
+        //    exportfunc.dxl_terminate();
+        //}
 
-        public void regWrite(int motorID, int position, int speed) // specificID
-        {
-            if (exportfunc.dxl_initialize(defaultPort, defaultBaudrate) == 1)
-            {
-                exportfunc.dxl_set_txpacket_id(motorID);
-                exportfunc.dxl_set_txpacket_length(7);
-                exportfunc.dxl_set_txpacket_instruction(4);
-                exportfunc.dxl_set_txpacket_parameter(0, 30);
-                exportfunc.dxl_set_txpacket_parameter(1, position % 256);
-                exportfunc.dxl_set_txpacket_parameter(2, position / 256);
-                exportfunc.dxl_set_txpacket_parameter(3, speed % 256);
-                exportfunc.dxl_set_txpacket_parameter(4, speed / 256);
-                exportfunc.dxl_tx_packet();
-                Console.WriteLine("Successfully write REG packet!");
-            }
-            else
-            {
-                Console.WriteLine("Cannot connect to USB2Dynamixel");
-            }
-            // close device
-            exportfunc.dxl_terminate();
-        }
+        //public void regWrite(int motorID, int position, int speed) // specificID
+        //{
+        //    if (exportfunc.dxl_initialize(defaultPort, defaultBaudrate) == 1)
+        //    {
+        //        exportfunc.dxl_set_txpacket_id(motorID);
+        //        exportfunc.dxl_set_txpacket_length(7);
+        //        exportfunc.dxl_set_txpacket_instruction(4);
+        //        exportfunc.dxl_set_txpacket_parameter(0, 30);
+        //        exportfunc.dxl_set_txpacket_parameter(1, position % 256);
+        //        exportfunc.dxl_set_txpacket_parameter(2, position / 256);
+        //        exportfunc.dxl_set_txpacket_parameter(3, speed % 256);
+        //        exportfunc.dxl_set_txpacket_parameter(4, speed / 256);
+        //        exportfunc.dxl_tx_packet();
+        //        Console.WriteLine("Successfully write REG packet!");
+        //    }
+        //    else
+        //    {
+        //        Console.WriteLine("Cannot connect to USB2Dynamixel");
+        //    }
+        //    // close device
+        //    exportfunc.dxl_terminate();
+        //}
 
-        public void regAction() // broadcastID
-        {
-            if (exportfunc.dxl_initialize(defaultPort, defaultBaudrate) == 1)
-            {
-                exportfunc.dxl_set_txpacket_id(broadcastID);
-                exportfunc.dxl_set_txpacket_length(2);
-                exportfunc.dxl_set_txpacket_instruction(5);
-                exportfunc.dxl_tx_packet();
-                Console.WriteLine("REG packet is started!");
-            }
-            else
-            {
-                Console.WriteLine("Cannot REGAction, please connect to USB2Dynamixel..");
-            }
-            // close device
-            exportfunc.dxl_terminate();
-        }
+        //public void regAction() // broadcastID
+        //{
+        //    if (exportfunc.dxl_initialize(defaultPort, defaultBaudrate) == 1)
+        //    {
+        //        exportfunc.dxl_set_txpacket_id(broadcastID);
+        //        exportfunc.dxl_set_txpacket_length(2);
+        //        exportfunc.dxl_set_txpacket_instruction(5);
+        //        exportfunc.dxl_tx_packet();
+        //        Console.WriteLine("REG packet is started!");
+        //    }
+        //    else
+        //    {
+        //        Console.WriteLine("Cannot REGAction, please connect to USB2Dynamixel..");
+        //    }
+        //    // close device
+        //    exportfunc.dxl_terminate();
+        //}
 
-        public void regAction(int motorID) // specificID
-        {
-            if (exportfunc.dxl_initialize(defaultPort, defaultBaudrate) == 1)
-            {
-                exportfunc.dxl_set_txpacket_id(motorID);
-                exportfunc.dxl_set_txpacket_length(2);
-                exportfunc.dxl_set_txpacket_instruction(5);
-                exportfunc.dxl_tx_packet();
-                Console.WriteLine("REG packet is started!");
-            }
-            else
-            {
-                Console.WriteLine("Cannot REGAction, please connect to USB2Dynamixel..");
-            }
-            // close device
-            exportfunc.dxl_terminate();
-        }
+        //public void regAction(int motorID) // specificID
+        //{
+        //    if (exportfunc.dxl_initialize(defaultPort, defaultBaudrate) == 1)
+        //    {
+        //        exportfunc.dxl_set_txpacket_id(motorID);
+        //        exportfunc.dxl_set_txpacket_length(2);
+        //        exportfunc.dxl_set_txpacket_instruction(5);
+        //        exportfunc.dxl_tx_packet();
+        //        Console.WriteLine("REG packet is started!");
+        //    }
+        //    else
+        //    {
+        //        Console.WriteLine("Cannot REGAction, please connect to USB2Dynamixel..");
+        //    }
+        //    // close device
+        //    exportfunc.dxl_terminate();
+        //}
     }
 }
 
