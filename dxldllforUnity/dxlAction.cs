@@ -231,7 +231,11 @@ namespace dxldllforUnity
             int CommStatus = exportfunc.dxl_get_result();
             if (CommStatus == exportfunc.COMM_RXSUCCESS)
             {
-
+                PrintErrorCode();
+            }
+            else
+            {
+                PrintCommStatus(CommStatus);
             }
         }
 
