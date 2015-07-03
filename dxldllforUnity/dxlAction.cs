@@ -276,6 +276,24 @@ namespace dxldllforUnity
         }
         #endregion
 
+        #region readWithInit
+        public int readPosWordOld()
+        {
+            if (exportfunc.dxl_initialize(defaultPort, defaultBaudrate) == 1)
+            {
+                int presentPos = exportfunc.dxl_read_word(setID, P_PRESENT_POSITION_L);
+                return presentPos;
+            }
+            else
+            {
+                Debug.Log("Cannot connect to USB2Dynamixel..");
+            }
+            // close device
+            exportfunc.dxl_terminate();
+            return 0;
+        }
+        #endregion
+
         #region new read
         public int readPosWord()
         {
