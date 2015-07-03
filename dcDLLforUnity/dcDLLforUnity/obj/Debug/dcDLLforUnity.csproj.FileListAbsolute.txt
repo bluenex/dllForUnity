@@ -1,0 +1,5 @@
+D:\tulfolder\LocalProjects\dcDLLforUnity\dcDLLforUnity\bin\Debug\dcDLLforUnity.dll
+D:\tulfolder\LocalProjects\dcDLLforUnity\dcDLLforUnity\bin\Debug\dcDLLforUnity.pdb
+D:\tulfolder\LocalProjects\dcDLLforUnity\dcDLLforUnity\obj\Debug\dcDLLforUnity.csprojResolveAssemblyReference.cache
+D:\tulfolder\LocalProjects\dcDLLforUnity\dcDLLforUnity\obj\Debug\dcDLLforUnity.dll
+D:\tulfolder\LocalProjects\dcDLLforUnity\dcDLLforUnity\obj\Debug\dcDLLforUnity.pdb
