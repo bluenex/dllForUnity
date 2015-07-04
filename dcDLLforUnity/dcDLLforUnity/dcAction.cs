@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.IO.Ports;
+using System.Timers;
 
 namespace dcDLLforUnity
 {
@@ -23,7 +24,7 @@ namespace dcDLLforUnity
             baudRate = baud;
         }
 
-        public void Init()
+        public void Open()
         {
             arduino = new SerialPort(arduinoPort, baudRate);
             arduino.Open();
@@ -43,8 +44,9 @@ namespace dcDLLforUnity
             arduino.Write("M" + pwmString);
         }
 
-        public void Terminate()
+        public void Close()
         {
+            WritePWM(0); // make sure to set PWM = 0
             arduino.Close();
         }
 
