@@ -115,9 +115,6 @@ namespace dxldllforUnity
         public const int P_MOVING = 46;
 
 
-       
-
-
         public int defaultPort;
         public int defaultBaudrate;
         public int defaultSpeed;
@@ -314,9 +311,41 @@ namespace dxldllforUnity
             exportfunc.dxl_write_word(setID, P_GOAL_POSITION_L, target);
         }
 
-        public void readPosWord(int motorID, int target)
+        public void writePosWord(int motorID, int target)
         {
             exportfunc.dxl_write_word(motorID, P_GOAL_POSITION_L, target);
+        }
+        #endregion
+
+        #region old write
+        public void drivePosition(int position, int speed) // specificID
+        {
+            //ledControl(1);
+            exportfunc.dxl_set_txpacket_id(setID);
+            exportfunc.dxl_set_txpacket_length(7);
+            exportfunc.dxl_set_txpacket_instruction(3);
+            exportfunc.dxl_set_txpacket_parameter(0, 30);
+            exportfunc.dxl_set_txpacket_parameter(1, position % 256);
+            exportfunc.dxl_set_txpacket_parameter(2, position / 256);
+            exportfunc.dxl_set_txpacket_parameter(3, speed % 256);
+            exportfunc.dxl_set_txpacket_parameter(4, speed / 256);
+            exportfunc.dxl_tx_packet();
+            //ledControl(0);
+        }
+
+        public void drivePosition(int motorID, int position, int speed) // specificID
+        {
+            //ledControl(1);
+            exportfunc.dxl_set_txpacket_id(motorID);
+            exportfunc.dxl_set_txpacket_length(7);
+            exportfunc.dxl_set_txpacket_instruction(3);
+            exportfunc.dxl_set_txpacket_parameter(0, 30);
+            exportfunc.dxl_set_txpacket_parameter(1, position % 256);
+            exportfunc.dxl_set_txpacket_parameter(2, position / 256);
+            exportfunc.dxl_set_txpacket_parameter(3, speed % 256);
+            exportfunc.dxl_set_txpacket_parameter(4, speed / 256);
+            exportfunc.dxl_tx_packet();
+            //ledControl(0);
         }
         #endregion
 
