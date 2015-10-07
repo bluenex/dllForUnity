@@ -114,7 +114,8 @@ namespace dxldllforUnity
         public const int P_PRESENT_POSITION_H = 37;
         public const int P_MOVING = 46;
 
-
+        public int CommStatus;
+        public int Moving;
         public int defaultPort;
         public int defaultBaudrate;
         public int defaultSpeed;
@@ -288,6 +289,51 @@ namespace dxldllforUnity
             // close device
             exportfunc.dxl_terminate();
             return 0;
+        }
+        #endregion
+
+        #region check moving
+        // Check if motor is moving
+        public bool isMoving()
+        {
+            Moving = exportfunc.dxl_read_byte(setID, P_MOVING);
+            CommStatus = exportfunc.dxl_get_result();
+            if (CommStatus == exportfunc.COMM_RXSUCCESS)
+            {
+                if (Moving == 0)
+                {
+                    return false;
+                }
+                else if (Moving == 1)
+                {
+                    return true;
+                }
+                else
+                {
+                    Debug.Log("Error, Moving is neither 0 nor 1");
+                    return false; // just in case
+                }
+            }
+            else
+            {
+                PrintCommStatus(CommStatus);
+                return false; // just in case
+            }
+        }
+
+        public bool isMoving(int motorID)
+        {
+            Moving = exportfunc.dxl_read_byte(motorID, P_MOVING);
+            CommStatus = exportfunc.dxl_get_result();
+            if (CommStatus == exportfunc.COMM_RXSUCCESS)
+            {
+                return true;
+            }
+            else
+            {
+                PrintCommStatus(CommStatus);
+                return false;
+            }
         }
         #endregion
 
