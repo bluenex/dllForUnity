@@ -216,7 +216,7 @@ namespace dxldllforUnity
         {
             if (exportfunc.dxl_initialize(defaultPort, defaultBaudrate) == 1)
             {
-                Debug.Log("Succeed to open USB2Dynamixel");
+                //Debug.Log("Succeed to open USB2Dynamixel");
             }
             else
             {
